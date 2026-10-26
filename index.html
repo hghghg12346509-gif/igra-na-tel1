@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Тест на реакцию</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: white;
+            transition: background-color 0.1s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            text-align: center;
+        }
+        h1 { font-size: 2.5em; margin-bottom: 20px;}
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.5em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <h1 id="text">Тест на реакцию</h1>
+        <button class="btn" id="startBtn">Начать</button>
+    </div>
+
+    <script>
+        const textDisplay = document.getElementById('text');
+        const startBtn = document.getElementById('startBtn');
+        const gameArea = document.body;
+        
+        let state = 'start'; // Состояния: start, waiting, ready, result
+        let startTime = 0;
+        let timeoutId = null;
+
+        // Запуск игры по кнопке
+        startBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Чтобы клик по кнопке не засчитывался как тап по экрану
+            startGame();
+        });
+
+        // Отслеживаем нажатия на экран (и мышкой, и пальцем)
+        gameArea.addEventListener('touchstart', handleTap);
+        gameArea.addEventListener('mousedown', handleTap);
+
+        function startGame() {
+            state = 'waiting';
+            startBtn.style.display = 'none';
+            textDisplay.textContent = 'Жди зеленого цвета...';
+            gameArea.style.backgroundColor = '#d32f2f'; // Красный
+            
+            // Случайная задержка от 1.5 до 5 секунд
+            const randomDelay = Math.floor(Math.random() * 3500) + 1500; 
+            timeoutId = setTimeout(makeGreen, randomDelay);
+        }
+
+        function makeGreen() {
+            if (state !== 'waiting') return;
+            state = 'ready';
+            gameArea.style.backgroundColor = '#388e3c'; // Зеленый
+            textDisplay.textContent = 'ЖМИ!';
+            startTime = Date.now();
+        }
+
+        function handleTap(e) {
+            if (e.target === startBtn) return; // Игнорируем клик по кнопке
+
+            if (state === 'waiting') {
+                // Нажали слишком рано
+                clearTimeout(timeoutId);
+                state = 'start';
+                gameArea.style.backgroundColor = '#333';
+                textDisplay.innerHTML = 'Слишком рано!<br><br>Попробуй еще раз.';
+                startBtn.style.display = 'block';
+                startBtn.textContent = 'Еще раз';
+            } else if (state === 'ready') {
+                // Вовремя нажали
+                const reactionTime = Date.now() - startTime;
+                state = 'result';
+                gameArea.style.backgroundColor = '#333';
+                textDisplay.innerHTML = `Твоя реакция:<br><span style="color:#4CAF50">${reactionTime} мс</span>`;
+                startBtn.style.display = 'block';
+                startBtn.textContent = 'Сыграть еще';
+            }
+        }
+    </script>
+</body>
+</html>
